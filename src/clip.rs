@@ -124,6 +124,31 @@ impl ClipMask {
 
         Some(())
     }
+    
+    /// Subtracts the provided path from the current clipping path.
+    ///
+    /// Path must be transformed beforehand.
+    pub fn subtract_path(
+        &mut self,
+        path: &Path,
+        fill_rule: FillRule,
+        anti_alias: bool,
+    ) -> Option<()> {
+        let mut submask = ClipMask::new();
+        submask.set_path(
+            self.mask.width.get(),
+            self.mask.height.get(),
+            path,
+            fill_rule,
+            anti_alias,
+        )?;
+
+        for (a, b) in self.mask.data.iter_mut().zip(submask.mask.data.iter()) {
+            *a = crate::color::premultiply_u8(*a, 255 - *b);
+        }
+
+        Some(())
+    }
 
     /// Clears the mask.
     ///
